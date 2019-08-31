@@ -62,7 +62,7 @@ body {
 }
 .integerSlider {
   -webkit-appearance: none;
-  background-color: transparent;
+  background-color: ${colors.transparent};
   width: 100%;
   max-width: 100%;  
   border-radius: 3px;
@@ -90,9 +90,9 @@ input[type="range"]::-ms-track {
   width: 100%;
   height: 6px;
   cursor: pointer;
-  background: transparent;
-  border-color: transparent;
-  color: transparent;
+  background:  ${colors.transparent};
+  border-color:  ${colors.transparent};
+  color:  ${colors.transparent};
 }
 input[type="range"]::-ms-fill-lower {
   background: ${colors.integerSliderBackgroundColor};
@@ -144,9 +144,9 @@ input[type="range"]:focus::-ms-fill-upper {
   width: 100%;
   border-radius: 3px;
   cursor: pointer;
-  background: transparent;
-  border-color: transparent;
-  color: transparent;
+  background:  ${colors.transparent};
+  border-color:  ${colors.transparent};
+  color:  ${colors.transparent};
 }
 .integerField {
   position: relative;
