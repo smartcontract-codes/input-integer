@@ -7,7 +7,7 @@ An integer-input-type component built with bel and csjs-inject
 # usage
 `npm install input-integer`
 
-see `./demo/demo.js` or https://ninabreznik.github.io/input-integer
+see `./demo/demo.js` or https://fionataeyang.github.io/input-integer/
 
 # contribute
 ```
