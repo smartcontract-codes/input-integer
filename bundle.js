@@ -186,7 +186,7 @@ function blur(e) {
 document.body.appendChild(el)
 document.body.appendChild(log)
 
-},{"../":54,"csjs-inject":9}],2:[function(require,module,exports){
+},{"../":56,"csjs-inject":9}],2:[function(require,module,exports){
 var trailingNewlineRegex = /\n[\s]+$/
 var leadingNewlineRegex = /^\n[\s]+/
 var trailingSpaceRegex = /[\s]+$/
@@ -11597,7 +11597,7 @@ module.exports = function numberToBN(arg) {
   throw new Error('[number-to-bn] while converting number ' + JSON.stringify(arg) + ' to BN.js instance, error: invalid number value. Value must be an integer, hex string, BN or BigNumber instance. Note, decimals are not supported.');
 }
 
-},{"bn.js":33,"strip-hex-prefix":48}],35:[function(require,module,exports){
+},{"bn.js":33,"strip-hex-prefix":50}],35:[function(require,module,exports){
 module.exports = window.crypto;
 },{}],36:[function(require,module,exports){
 module.exports = require('crypto');
@@ -14572,162 +14572,237 @@ module.exports = randomHex;
 })(this);
 
 },{}],39:[function(require,module,exports){
-const getMessage = require('./lib/getMessage');
-const getRange = require('./lib/getRange');
-const isAddress = require('./lib/isAddress');
-const isBoolean = require('./lib/isBoolean');
-const isInt = require('./lib/isInt');
-const isUint = require('./lib/isUint');
-const isValid = require('./lib/isValid');
+const getMessage = require('./lib/getMessage')
+const getRange = require('./lib/getRange')
+const isAddress = require('./lib/isAddress')
+const isBoolean = require('./lib/isBoolean')
+const isInt = require('./lib/isInt')
+const isUint = require('./lib/isUint')
+const isValid = require('./lib/isValid')
+const isBytes = require('./lib/isBytes')
+const isByteArray = require('./lib/isByteArray')
 
-const version = '0.1.1';
-const validator = {
+const version = '0.1.2'
+let validator = {
   version,
   isAddress,
   isBoolean,
-  isInt8: (str) => isInt(str, 8),
-  isUint8: (str) => isUint(str, 8),
+  isInt8: str => isInt(str, 8),
+  isUint8: str => isUint(str, 8),
   isValid,
   getRange,
-  getMessage
-};
+  getMessage,
+  isBytes: isByteArray,
+  isByte: str => isBytes(str,1),
+}
 
-module.exports = validator;
-},{"./lib/getMessage":40,"./lib/getRange":41,"./lib/isAddress":42,"./lib/isBoolean":43,"./lib/isInt":44,"./lib/isUint":45,"./lib/isValid":46}],40:[function(require,module,exports){
-const assertString = require('./util/assertString');
-const isValid = require('./isValid');
+for (let i = 1; i <= 32; i++) {
+  validator[`isBytes${i}`] = str => isBytes(str, i)
+}
 
-module.exports = getMessage;
+module.exports = validator
+
+},{"./lib/getMessage":40,"./lib/getRange":41,"./lib/isAddress":42,"./lib/isBoolean":43,"./lib/isByteArray":44,"./lib/isBytes":45,"./lib/isInt":46,"./lib/isUint":47,"./lib/isValid":48}],40:[function(require,module,exports){
+const assertString = require('./util/assertString')
+const isValid = require('./isValid')
+
+module.exports = getMessage
 
 function getMessage(type, str) {
-  assertString(str);
-  if (isValid(type, str)) return '';
-  if (type.search(/\buint/) != -1) return 'The value is an illegal range.';
-  if (type.search(/\bint/) != -1) return 'The value is an illegal range.';
-  if (type.search(/\bbool/) != -1) return 'The value is not a boolean.';
-  if (type.search(/\baddress/) != -1) return 'The value is not a valid address.';
+  assertString(str)
+  if (isValid(type, str)) return ''
+  if (type.search(/\buint/) != -1) return 'The value is an illegal range.'
+  if (type.search(/\bint/) != -1) return 'The value is an illegal range.'
+  if (type.search(/\bbool/) != -1) return 'The value is not a boolean.'
+  if (type.search(/\baddress/) != -1) return 'The value is not a valid address.'
+  if (type.search(/\bbytes/) != -1) return 'The value is not a valid bytes.'
+  if (type.search(/\bbyte/) != -1) return 'The value is not a valid bytes.'
 }
-},{"./isValid":46,"./util/assertString":47}],41:[function(require,module,exports){
-const bigNumber = require('bignumber.js');
-const assertString = require('./util/assertString');
 
-module.exports = getRange;
+},{"./isValid":48,"./util/assertString":49}],41:[function(require,module,exports){
+const bigNumber = require('bignumber.js')
+const assertString = require('./util/assertString')
+
+module.exports = getRange
 
 function getRange(type) {
-  assertString(type);
-  if (type.search(/\buint/) != -1) return getUintRange(type);
-  if (type.search(/\bint/) != -1) return getIntRange(type);
-  return;
+  assertString(type)
+  if (type.search(/\buint/) != -1) return getUintRange(type)
+  if (type.search(/\bint/) != -1) return getIntRange(type)
+  return
 }
 
 function getUintRange(type) {
-  let exponent = type.replace('uint', '');
-  if (exponent == '') exponent = '256';
-  exponent = bigNumber(exponent);
+  let exponent = type.replace('uint', '')
+  if (exponent == '') exponent = '256'
+  exponent = bigNumber(exponent)
   if (exponent.isInteger()) {
     let range = {
       MIN: 0,
-      MAX: bigNumber(2).pow(exponent).minus(1).toFixed()
-    };
-    return range;
+      MAX: bigNumber(2)
+        .pow(exponent)
+        .minus(1)
+        .toFixed(),
+    }
+    return range
   }
 }
 
 function getIntRange(type) {
-  let exponent = type.replace('int', '');
-  if (exponent == '') exponent = '256';
-  exponent = bigNumber(exponent);
+  let exponent = type.replace('int', '')
+  if (exponent == '') exponent = '256'
+  exponent = bigNumber(exponent)
   if (exponent.isInteger()) {
     let range = {
-      MIN: bigNumber(2).pow(exponent).div(2).times(-1).toFixed(),
-      MAX: bigNumber(2).pow(exponent).div(2).minus(1).toFixed()
-    };
-    return range;
+      MIN: bigNumber(2)
+        .pow(exponent)
+        .div(2)
+        .times(-1)
+        .toFixed(),
+      MAX: bigNumber(2)
+        .pow(exponent)
+        .div(2)
+        .minus(1)
+        .toFixed(),
+    }
+    return range
   }
 }
-},{"./util/assertString":47,"bignumber.js":38}],42:[function(require,module,exports){
-const assertString = require('./util/assertString');
-var Web3Utils = require('web3-utils');
 
-module.exports = isAddress;
+},{"./util/assertString":49,"bignumber.js":38}],42:[function(require,module,exports){
+const assertString = require('./util/assertString')
+var Web3Utils = require('web3-utils')
+
+module.exports = isAddress
 
 function isAddress(str) {
-  assertString(str);
-  return Web3Utils.isAddress(str);
+  assertString(str)
+  return Web3Utils.isAddress(str)
 }
-},{"./util/assertString":47,"web3-utils":51}],43:[function(require,module,exports){
-const assertString = require('./util/assertString');
 
-module.exports = isBoolean;
+},{"./util/assertString":49,"web3-utils":53}],43:[function(require,module,exports){
+const assertString = require('./util/assertString')
+
+module.exports = isBoolean
 
 function isBoolean(str) {
-  assertString(str);
-  return (['true', 'false'].indexOf(str) >= 0);
+  assertString(str)
+  return ['true', 'false'].indexOf(str) >= 0
 }
-},{"./util/assertString":47}],44:[function(require,module,exports){
-// 帶符號整型
-const BigNumber = require('bignumber.js');
-const assertString = require('./util/assertString');
 
-module.exports = isInt;
+},{"./util/assertString":49}],44:[function(require,module,exports){
+const assertString = require('./util/assertString')
+
+module.exports = isByteArray
+
+const hexRegularPattern = new RegExp(/^0x[0-9a-fA-F]+/)
+
+function isByteArray(str) {
+  assertString(str)
+  const byteSize = (str.length - 2) / 2
+  return byteSize >= 1 && byteSize <= 32 && hexRegularPattern.test(str)
+}
+},{"./util/assertString":49}],45:[function(require,module,exports){
+// byte is an alias for bytes1
+const assertString = require('./util/assertString')
+
+module.exports = isBytes
+
+const hexRegularPattern = new RegExp(/^0x[0-9a-fA-F]+/)
+
+function isBytes(str, exponent) {
+  assertString(str)
+  const byteSize = (str.length - 2) / 2
+  return byteSize <= exponent && hexRegularPattern.test(str)
+}
+
+},{"./util/assertString":49}],46:[function(require,module,exports){
+// 帶符號整型
+const BigNumber = require('bignumber.js')
+const assertString = require('./util/assertString')
+
+module.exports = isInt
 
 function isInt(str, exponent) {
-  assertString(str);
-  let num = new BigNumber(str);
-  return num.isInteger() && num.gte(-(Math.pow(2, exponent) / 2)) && num.lte((Math.pow(2, exponent) / 2) - 1);
+  assertString(str)
+  let num = new BigNumber(str)
+  return (
+    num.isInteger() &&
+    num.gte(-(Math.pow(2, exponent) / 2)) &&
+    num.lte(Math.pow(2, exponent) / 2 - 1)
+  )
 }
-},{"./util/assertString":47,"bignumber.js":38}],45:[function(require,module,exports){
-// 不帶符號整型
-const bigNumber = require('bignumber.js');
-const assertString = require('./util/assertString');
 
-module.exports = isUint;
+},{"./util/assertString":49,"bignumber.js":38}],47:[function(require,module,exports){
+// 不帶符號整型
+const bigNumber = require('bignumber.js')
+const assertString = require('./util/assertString')
+
+module.exports = isUint
 
 function isUint(str, exponent) {
-  assertString(str);
-  let num = bigNumber(str);
-  return num.isInteger() && num.gte(0) && num.lte(Math.pow(2, exponent) - 1);
+  assertString(str)
+  let num = bigNumber(str)
+  return num.isInteger() && num.gte(0) && num.lte(Math.pow(2, exponent) - 1)
 }
-},{"./util/assertString":47,"bignumber.js":38}],46:[function(require,module,exports){
-const assertString = require('./util/assertString');
-const isAddress = require('./isAddress');
-const isBoolean = require('./isBoolean');
-const isInt = require('./isInt');
-const isUint = require('./isUint');
 
-module.exports = isValid;
+},{"./util/assertString":49,"bignumber.js":38}],48:[function(require,module,exports){
+const assertString = require('./util/assertString')
+const isAddress = require('./isAddress')
+const isBoolean = require('./isBoolean')
+const isInt = require('./isInt')
+const isUint = require('./isUint')
+const isBytes = require('./isBytes')
+
+module.exports = isValid
 
 function isValid(type, value) {
-  assertString(type);
-  assertString(value);
-  if (type.search(/\buint/) != -1) return isUint(value, type.substring(4));
-  if (type.search(/\bint/) != -1) return isInt(value, type.substring(3));
-  if (type.search(/\bbool/) != -1) return isBoolean(value);
-  if (type.search(/\baddress/) != -1) return isAddress(value);
-  return true;
+  assertString(type)
+  assertString(value)
+  if (type.search(/\buint/) != -1) return isUint(value, type.substring(4))
+  if (type.search(/\bint/) != -1) return isInt(value, type.substring(3))
+  if (type.search(/\bbool/) != -1) return isBoolean(value)
+  if (type.search(/\baddress/) != -1) return isAddress(value)
+  if (type.search(/\bbytes/) != -1) {
+    let len = 5
+    let exponent = type.length == len ? 32 : parseInt(type.substring(len))
+    return isBytes(value, exponent)
+  }
+  if (type.search(/\bbyte/) != -1) {
+    let len = 4
+    let exponent = type.length == len ? 1 : parseInt(type.substring(len))
+    return isBytes(value, exponent)
+  }
+  return true
 }
-},{"./isAddress":42,"./isBoolean":43,"./isInt":44,"./isUint":45,"./util/assertString":47}],47:[function(require,module,exports){
-module.exports = assertString;
+
+},{"./isAddress":42,"./isBoolean":43,"./isBytes":45,"./isInt":46,"./isUint":47,"./util/assertString":49}],49:[function(require,module,exports){
+module.exports = assertString
 
 function assertString(input) {
-  const isString = (typeof input === 'string' || input instanceof String);
+  const isString = typeof input === 'string' || input instanceof String
 
   if (!isString) {
-    let invalidType;
+    let invalidType
     if (input === null) {
-      invalidType = 'null';
+      invalidType = 'null'
     } else {
-      invalidType = typeof input;
-      if (invalidType === 'object' && input.constructor && input.constructor.hasOwnProperty('name')) {
-        invalidType = input.constructor.name;
+      invalidType = typeof input
+      if (
+        invalidType === 'object' &&
+        input.constructor &&
+        input.constructor.hasOwnProperty('name')
+      ) {
+        invalidType = input.constructor.name
       } else {
-        invalidType = `a ${invalidType}`;
+        invalidType = `a ${invalidType}`
       }
     }
-    throw new TypeError(`Expected string but received ${invalidType}.`);
+    throw new TypeError(`Expected string but received ${invalidType}.`)
   }
 }
-},{}],48:[function(require,module,exports){
+
+},{}],50:[function(require,module,exports){
 var isHexPrefixed = require('is-hex-prefixed');
 
 /**
@@ -14743,7 +14818,7 @@ module.exports = function stripHexPrefix(str) {
   return isHexPrefixed(str) ? str.slice(2) : str;
 }
 
-},{"is-hex-prefixed":32}],49:[function(require,module,exports){
+},{"is-hex-prefixed":32}],51:[function(require,module,exports){
 (function (global){
 //     Underscore.js 1.9.1
 //     http://underscorejs.org
@@ -16439,7 +16514,7 @@ module.exports = function stripHexPrefix(str) {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],50:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 /*! https://mths.be/utf8js v3.0.0 by @mathias */
 ;(function(root) {
 
@@ -16643,7 +16718,7 @@ module.exports = function stripHexPrefix(str) {
 
 }(typeof exports === 'undefined' ? this.utf8 = {} : exports));
 
-},{}],51:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 /*
  This file is part of web3.js.
 
@@ -17009,7 +17084,7 @@ module.exports = {
 };
 
 
-},{"./soliditySha3.js":52,"./utils.js":53,"ethjs-unit":27,"randomhex":37,"underscore":49}],52:[function(require,module,exports){
+},{"./soliditySha3.js":54,"./utils.js":55,"ethjs-unit":27,"randomhex":37,"underscore":51}],54:[function(require,module,exports){
 /*
  This file is part of web3.js.
 
@@ -17256,7 +17331,7 @@ var soliditySha3 = function () {
 
 module.exports = soliditySha3;
 
-},{"./utils.js":53,"bn.js":5,"underscore":49}],53:[function(require,module,exports){
+},{"./utils.js":55,"bn.js":5,"underscore":51}],55:[function(require,module,exports){
 /*
  This file is part of web3.js.
 
@@ -17729,7 +17804,7 @@ module.exports = {
     sha3: sha3
 };
 
-},{"bn.js":5,"eth-lib/lib/hash":26,"number-to-bn":34,"underscore":49,"utf8":50}],54:[function(require,module,exports){
+},{"bn.js":5,"eth-lib/lib/hash":26,"number-to-bn":34,"underscore":51,"utf8":52}],56:[function(require,module,exports){
 const bel = require('bel')
 const csjs = require('csjs-inject')
 const validator = require('solidity-validator')
