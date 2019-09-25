@@ -5,13 +5,13 @@ const bigNumber = require('bignumber.js')
 
 module.exports = displayIntegerInput
 
-function displayIntegerInput ({ theme: { classes: css }, type, cb }) {
+function displayIntegerInput ({ theme: { classes: css }, type, cb, focus, blur }) {
   const splitType = type.split('[')[0] // split to get basic type (bool, uint8)
   const min = validator.getRange(splitType).MIN
   const max = validator.getRange(splitType).MAX
   const title = `Valid values for type ${splitType} are from ${min} to ${max}`
-  const num = bel`<input data-type=${splitType} type="number" class=${css.integerValue} value="0" onclick="${(e)=>e.target.select()}" onchange=${(e)=>validate(e)} oninput=${(e)=>sliderUpdate(e, splitType)} onkeydown=${(e)=>keysUpdating(e, splitType)}>`
-  const slider = bel`<input data-type=${splitType} class=${css.integerSlider} type="range" title=${title} min=${min} max=${max} value="0" step=1 onchange=${(e)=>validate(e)} oninput=${(e)=>numUpdate(e, splitType)}>`
+  const num = bel`<input data-type=${splitType} type="number" class=${css.integerValue} value="0" onclick="${(e)=>e.target.select()}" onchange=${(e)=>validate(e)} onfocus=${(e)=>focus(e)} onblur=${(e)=>blur(e)} oninput=${(e)=>sliderUpdate(e, splitType)} onkeydown=${(e)=>keysUpdating(e, splitType)}>`
+  const slider = bel`<input data-type=${splitType} class=${css.integerSlider} type="range" title=${title} min=${min} max=${max} value="0" step=1 onchange=${(e)=>validate(e)} onblur=${(e)=>blur(e)} onfocus=${(e)=>focus(e)} oninput=${(e)=>numUpdate(e, splitType)}>`
   return bel`<div class=${css.integerField}>
     ${slider}
     ${num}

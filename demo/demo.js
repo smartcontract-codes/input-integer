@@ -4,12 +4,6 @@ const inputinteger = require('../')
 var colors = {
   bodyFont: `'Nunito', sans-serif`,
   transparent: 'transparent',
-  inputFieldFontSize: '1.4rem',
-  inputFieldColor: '#ffffff',
-  inputFieldPlaceholderColor: '#8d8d8d',
-  inputFieldBackgroundColor: '#2c323c',
-  inputFieldBorder: 'none',
-  inputFieldBorderRadius: '2px',
   integerSliderBackgroundColor: '#DCD7D6',
   integerSliderFocusBackgroundColor: '#ebebeb',
   integerThumbBackgroundColor: '#00A2F9',
@@ -18,7 +12,7 @@ var colors = {
   integerValueColor: '#ffffff',
   integerValuePlaceholderColor: '#8d8d8d',
   integerValueBackgroundColor: '#2c323c',
-  integerValueBorder: 'none',
+  integerValueBorderColor: '#2c323c',
   integerValueBorderRadius: '2px',
   integerValueTextAlign: 'center',
 }
@@ -30,31 +24,21 @@ html {
 }
 body {
   font-size: 1.6rem;
-}
-.inputField {
-  font-family: 'Nunito', sans-serif;
-  font-size: ${colors.inputFieldFontSize};
-  color: ${colors.inputFieldColor};
-  background-color: ${colors.inputFieldBackgroundColor};
-  text-align: ${colors.inputFieldTextAlign};
-  padding: 6px 28px 6px 12px;
-  border-radius: ${colors.inputFieldBorderRadius};
-  border: ${colors.inputFieldBorder};
-  width: calc(100% - 40px);
-}
-.inputField::placeholder {
-  color: ${colors.inputFieldPlaceholderColor};
+  background-color: #000;
+  color: #d9d9d9;
 }
 .integerValue {
-  width: calc(100% - 42px);
+  width: calc(100% - 24px);
   font-family: 'Nunito', sans-serif;
   font-size: ${colors.integerValueFontSize};
   color: ${colors.integerValueColor};
   background-color: ${colors.integerValueBackgroundColor};
   border-radius: ${colors.integerValueBorderRadius};
-  border: ${colors.integerValueBorder};
+  border: 1px solid ${colors.integerValueBorderColor};
   text-align: ${colors.integerValueTextAlign};
-  padding: 6px 30px 6px 12px;
+  padding: 6px 12px;
+  outline: none;
+  transition: border .6s ease-in-out;
 }
 .integerValue::placeholder {
   color: ${colors.integerValuePlaceholderColor};
@@ -157,18 +141,46 @@ input[type="range"]:focus::-ms-fill-upper {
   align-items: center;
   max-width: 300px;
 }
+.focus, .focus.invalidated {
+  border: 1px solid #00A4DC;
+}
+.invalidated {
+  border: 1px solid #FF2975;
+}
 </style>`
 
 const classes = {
-  inputField: 'inputField',
   integerValue: 'integerValue',
   integerSlider: 'integerSlider',
-  integerField: 'integerField'
+  integerField: 'integerField',
+  focus: 'focus', 
+  invalidated: 'invalidated'
 }
 const log = document.createElement('pre')
-const el = inputinteger({ theme: { classes }, type: 'uint8', cb: (err, val) => {
-  if (err) log.appendChild(document.createTextNode(`${err}\n`))
-  else log.appendChild(document.createTextNode(`ok: ${val}\n`))
-} })
+const el = inputinteger({ theme: { classes }, type: 'uint8', cb: (err, e, val) => {
+  if (err)  { 
+    log.appendChild(document.createTextNode(`${err}\n`))
+    e.classList.add(classes.invalidated)
+  } else { 
+    log.appendChild(document.createTextNode(`ok: ${val}\n`))
+    e.classList.remove(classes.invalidated)
+  }
+}, focus, blur })
+function focus(e) {
+  if (e.target.classList.contains(classes.integerValue)) {
+    e.target.classList.add(classes.focus)
+  } else {
+    e.target.parentNode.children[1].classList.add(classes.focus)
+    e.target.parentNode.children[1].classList.remove(classes.invalidated)
+  }
+}
+function blur(e) {
+  if (e.target.classList.contains(classes.integerValue)) {
+    e.target.classList.remove(classes.focus)
+  } else {
+    e.target.parentNode.children[1].classList.remove(classes.focus)
+    e.target.parentNode.children[1].classList.remove(classes.invalidated)
+  }
+}
 document.body.appendChild(el)
 document.body.appendChild(log)
